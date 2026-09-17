@@ -5,6 +5,8 @@ file with you at recitation.
 
 ## 1. Deployed URL and instance id
 
+### Milestone 1 record
+
 ```
 -----------------------------------------------------------------------
 |                           DescribeStacks                            |
@@ -12,6 +14,24 @@ file with you at recitation.
 |  InstanceId|  i-085940c9e09a66d28                                   |
 |  ServiceUrl|  http://ec2-54-147-8-96.compute-1.amazonaws.com:8080   |
 +------------+--------------------------------------------------------+
+```
+### Milestone 2 record
+```
+------------------------------------------------------------------------
+|                            DescribeStacks                            |
++------------+---------------------------------------------------------+
+|  InstanceId|  i-01f7892c318be1e55                                    |
+|  ServiceUrl|  http://ec2-34-229-9-148.compute-1.amazonaws.com:8080   |
++------------+---------------------------------------------------------+
+```
+**After fix:**
+```
+-------------------------------------------------------------------------
+|                            DescribeStacks                             |
++------------+----------------------------------------------------------+
+|  InstanceId|  i-04fc26512bb6c895e                                     |
+|  ServiceUrl|  http://ec2-54-227-53-189.compute-1.amazonaws.com:8080   |
++------------+----------------------------------------------------------+
 ```
 
 <!-- The ServiceUrl and InstanceId outputs. Paste both here every time
@@ -42,23 +62,32 @@ glue made the service start.
 **The failing curl** (command and output):
 
 ```
-
+curl http://ec2-34-229-9-148.compute-1.amazonaws.com:8080/api/health
+curl: (7) Failed to connect to ec2-34-229-9-148.compute-1.amazonaws.com port 8080 after 49 ms: Couldn't connect to server
 ```
 
 **The log line that told you what was wrong:**
 
 ```
+aws ssm start-session --target i-01f7892c318be1e55
 
+Starting session with SessionId: user5412204=Shuangxueer_Zhang-gy9z7xotyxfz4vk9v4p2dzt6ke
+sh-5.2$ sudo docker ps
+sudo docker logs lab04-service
+CONTAINER ID   IMAGE                                     COMMAND                  CREATED         STATUS         PORTS                                       NAMES
+7f71e3f361e7   ghcr.io/cmu-17-214/lab04-service:latest   "/__cacert_entrypoin…"   2 minutes ago   Up 2 minutes   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp   lab04-service
+lab04-service listening on 9090
 ```
 
 **What was wrong, and the fix you applied:**
 
-<!-- One or two sentences. Say what you changed and where you changed it. -->
+The PortOverride parameter in params-scenario2.json was set to 9090, which overrode the container's PORT environment variable and made the service process listen on 9090, while the Docker port mapping and security group still forwarded traffic to 8080 (unchanged). The fix was infrastructural: I deleted the broken stack and recreated it with params-healthy.json, where PortOverride is empty, so the service process falls back to listening on ServicePort (8080) and now matches the unchanged port mapping.
 
 **The healthy curl after the fix:**
 
 ```
-
+curl http://ec2-54-227-53-189.compute-1.amazonaws.com:8080/api/health
+{"status":"ok"}%                       
 ```
 
 ## 5. Teardown proof
