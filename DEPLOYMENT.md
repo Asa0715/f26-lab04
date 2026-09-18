@@ -55,7 +55,7 @@ glue made the service start.
 
 - Compute: one t3.micro EC2 instance (Amazon Linux 2023) whose UserData script installs Docker and runs the lab04-service container on port 8080.
 - Network: a security group opening only port 8080 (health check) and port 22 (SSH fallback) inbound; outbound left at the default so the instance can pull the image.
-- Glue: the LabInstanceProfile IAM role enables SSM shell access with no key pair, and a UserData-scheduled shutdown after 4 hours prevents runaway costs.
+- Glue: the instance's UserData script (infra/template.yaml:80-108）) runs at first boot: it installs and starts Docker, then runs the lab04-service image with docker run -p 8080:8080 -e PORT=..., which is what actually starts the service.
 
 ## 4. Scenario 2 diagnosis
 
